@@ -16,6 +16,10 @@ export class UsersService {
     private readonly termsRepository: TermsRepository,
   ) {}
 
+  findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findByEmail(email);
+  }
+
   async create(data: CreateUserDto, agreedTermsIds: number[]): Promise<User> {
     await this.assertEmailNotDuplicated(data.email);
 

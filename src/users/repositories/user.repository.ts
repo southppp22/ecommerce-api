@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- 스켈레톤: 구현 시 제거 */
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { User } from '../entities/user.entity';
 import type { CreateUserDto } from '../dto/create-user.dto';
@@ -9,13 +8,17 @@ export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   findByEmail(email: string): Promise<User | null> {
-    throw new NotImplementedException();
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
-  createWithAgreements(
-    data: CreateUserDto,
-    agreedTermsIds: number[],
-  ): Promise<User> {
-    throw new NotImplementedException();
+  create(data: CreateUserDto, agreedTermsIds: number[]): Promise<User> {
+    return this.prisma.user.create({
+      data: {
+        ...data,
+        termsAgreements: {
+          create: agreedTermsIds.map((termsId) => ({ termsId })),
+        },
+      },
+    });
   }
 }

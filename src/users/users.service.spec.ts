@@ -72,6 +72,23 @@ describe('UsersService', () => {
     );
   });
 
+  it('findByEmail은 저장소 조회 결과 사용자를 그대로 반환한다', async () => {
+    userRepository.findByEmail.mockResolvedValue(savedUser);
+
+    const result = await service.findByEmail(savedUser.email);
+
+    expect(result).toBe(savedUser);
+    expect(userRepository.findByEmail.mock.calls).toEqual([[savedUser.email]]);
+  });
+
+  it('findByEmail은 해당 이메일의 사용자가 없으면 null을 반환한다', async () => {
+    userRepository.findByEmail.mockResolvedValue(null);
+
+    const result = await service.findByEmail('nobody@example.com');
+
+    expect(result).toBeNull();
+  });
+
   it('유효한 입력이면 유저를 생성한다', async () => {
     userRepository.findByEmail.mockResolvedValue(null);
     termsRepository.findAllActive.mockResolvedValue([

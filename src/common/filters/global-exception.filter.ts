@@ -26,7 +26,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let errorCode = 'INTERNAL_SERVER_ERROR';
 
     if (isHttp) {
-      errorCode = (HttpStatus[status] as string | undefined) ?? 'UNKNOWN_ERROR';
+      errorCode = HttpStatus[status] ?? 'UNKNOWN_ERROR';
       const res = exception.getResponse();
       if (typeof res === 'string') {
         message = res;

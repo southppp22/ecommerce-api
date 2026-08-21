@@ -26,17 +26,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let errorCode = 'INTERNAL_SERVER_ERROR';
 
     if (isHttp) {
+      const fallbackCode =
+        (HttpStatus[status] as string | undefined) ?? 'UNKNOWN_ERROR';
       const res = exception.getResponse();
       if (typeof res === 'string') {
         message = res;
-        errorCode = HttpStatus[status];
+        errorCode = fallbackCode;
       } else if (typeof res === 'object' && res !== null) {
         const body = res as Record<string, unknown>;
         message = Array.isArray(body.message)
           ? (body.message as unknown[]).join(', ')
           : ((body.message as string | undefined) ?? message);
-        errorCode =
-          (body.errorCode as string | undefined) ?? HttpStatus[status];
+        errorCode = (body.errorCode as string | undefined) ?? fallbackCode;
       }
     }
 

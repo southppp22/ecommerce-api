@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { ConfigType } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import appConfig from './config/app.config';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,7 +17,9 @@ async function bootstrap() {
     }),
   );
 
-  const { port } = app.get<ConfigType<typeof appConfig>>(appConfig.KEY);
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
+  const port = Number(app.get(ConfigService).get<string>('PORT') ?? 3000);
   await app.listen(port);
 }
 void bootstrap();

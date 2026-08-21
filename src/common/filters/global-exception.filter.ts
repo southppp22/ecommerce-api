@@ -29,6 +29,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const res = exception.getResponse();
       if (typeof res === 'string') {
         message = res;
+        errorCode = HttpStatus[status];
       } else if (typeof res === 'object' && res !== null) {
         const body = res as Record<string, unknown>;
         message = Array.isArray(body.message)

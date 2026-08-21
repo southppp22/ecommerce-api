@@ -2,6 +2,8 @@ export const ErrorCode = {
   USER_NOT_FOUND: 'USER_NOT_FOUND',
   DUPLICATE_EMAIL: 'DUPLICATE_EMAIL',
   INVALID_PASSWORD: 'INVALID_PASSWORD',
+  TERMS_NOT_FOUND: 'TERMS_NOT_FOUND',
+  REQUIRED_TERMS_NOT_AGREED: 'REQUIRED_TERMS_NOT_AGREED',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

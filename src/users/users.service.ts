@@ -1,6 +1,8 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { BusinessException } from '../common/exceptions/business.exception';
-import { ErrorCode } from '../common/exceptions/error-code.constant';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import type { User } from './entities/user.entity';
 import type { Terms } from './entities/terms.entity';
 import { UserRepository } from './repositories/user.repository';
@@ -28,11 +30,7 @@ export class UsersService {
   private async assertEmailNotDuplicated(email: string): Promise<void> {
     const existing = await this.userRepository.findByEmail(email);
     if (existing) {
-      throw new BusinessException(
-        ErrorCode.DUPLICATE_EMAIL,
-        '이미 가입된 이메일입니다',
-        HttpStatus.CONFLICT,
-      );
+      throw new ConflictException('이미 가입된 이메일입니다');
     }
   }
 
@@ -42,11 +40,7 @@ export class UsersService {
   ): void {
     const activeIdSet = new Set(activeTerms.map((terms) => terms.id));
     if (agreedTermsIds.some((id) => !activeIdSet.has(id))) {
-      throw new BusinessException(
-        ErrorCode.TERMS_NOT_FOUND,
-        '유효하지 않은 약관이 포함되어 있습니다',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('유효하지 않은 약관이 포함되어 있습니다');
     }
   }
 
@@ -59,11 +53,7 @@ export class UsersService {
       (terms) => terms.isRequired && !agreedIdSet.has(terms.id),
     );
     if (missingRequired.length > 0) {
-      throw new BusinessException(
-        ErrorCode.REQUIRED_TERMS_NOT_AGREED,
-        `필수 약관에 동의해야 합니다`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('필수 약관에 동의해야 합니다');
     }
   }
 }

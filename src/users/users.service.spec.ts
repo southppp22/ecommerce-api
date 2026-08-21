@@ -1,7 +1,5 @@
-import { HttpStatus } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { BusinessException } from '../common/exceptions/business.exception';
-import { ErrorCode } from '../common/exceptions/error-code.constant';
 import { Gender, UserRole } from './entities/user.entity';
 import type { User } from './entities/user.entity';
 import type { Terms } from './entities/terms.entity';
@@ -89,22 +87,21 @@ describe('UsersService', () => {
     expect(userRepository.create.mock.calls).toEqual([[createUserDto, [1, 2]]]);
   });
 
-  it('이미 가입된 이메일이면 DUPLICATE_EMAIL 에러를 던지고 유저를 생성하지 않는다', async () => {
+  it('이미 가입된 이메일이면 ConflictException을 던지고 유저를 생성하지 않는다', async () => {
     userRepository.findByEmail.mockResolvedValue(savedUser);
 
     const error = await service
       .create(createUserDto, [1, 2])
       .catch((e: unknown) => e);
 
-    expect(error).toBeInstanceOf(BusinessException);
-    expect((error as BusinessException).errorCode).toBe(
-      ErrorCode.DUPLICATE_EMAIL,
+    expect(error).toBeInstanceOf(ConflictException);
+    expect((error as ConflictException).message).toBe(
+      '이미 가입된 이메일입니다',
     );
-    expect((error as BusinessException).getStatus()).toBe(HttpStatus.CONFLICT);
     expect(userRepository.create.mock.calls).toHaveLength(0);
   });
 
-  it('존재하지 않는 약관 id가 포함되면 TERMS_NOT_FOUND 에러를 던진다', async () => {
+  it('존재하지 않는 약관 id가 포함되면 BadRequestException을 던진다', async () => {
     userRepository.findByEmail.mockResolvedValue(null);
     termsRepository.findAllActive.mockResolvedValue([
       serviceTerms,
@@ -115,16 +112,13 @@ describe('UsersService', () => {
       .create(createUserDto, [1, 999])
       .catch((e: unknown) => e);
 
-    expect(error).toBeInstanceOf(BusinessException);
-    expect((error as BusinessException).errorCode).toBe(
-      ErrorCode.TERMS_NOT_FOUND,
-    );
-    expect((error as BusinessException).getStatus()).toBe(
-      HttpStatus.BAD_REQUEST,
+    expect(error).toBeInstanceOf(BadRequestException);
+    expect((error as BadRequestException).message).toBe(
+      '유효하지 않은 약관이 포함되어 있습니다',
     );
   });
 
-  it('존재하지만 비활성인 약관에 동의한 경우 TERMS_NOT_FOUND 에러를 던진다.', async () => {
+  it('존재하지만 비활성인 약관에 동의한 경우 BadRequestException을 던진다.', async () => {
     userRepository.findByEmail.mockResolvedValue(null);
     // PRIVACY(id: 2)는 비활성이라 활성 약관 목록에 없음
     termsRepository.findAllActive.mockResolvedValue([serviceTerms]);
@@ -133,13 +127,13 @@ describe('UsersService', () => {
       .create(createUserDto, [1, 2])
       .catch((e: unknown) => e);
 
-    expect(error).toBeInstanceOf(BusinessException);
-    expect((error as BusinessException).errorCode).toBe(
-      ErrorCode.TERMS_NOT_FOUND,
+    expect(error).toBeInstanceOf(BadRequestException);
+    expect((error as BadRequestException).message).toBe(
+      '유효하지 않은 약관이 포함되어 있습니다',
     );
   });
 
-  it('필수 약관에 하나라도 동의하지 않으면 REQUIRED_TERMS_NOT_AGREED 에러를 던지고 유저를 생성하지 않는다', async () => {
+  it('필수 약관에 하나라도 동의하지 않으면 BadRequestException을 던지고 유저를 생성하지 않는다', async () => {
     userRepository.findByEmail.mockResolvedValue(null);
     termsRepository.findAllActive.mockResolvedValue([
       serviceTerms,
@@ -151,12 +145,9 @@ describe('UsersService', () => {
       .create(createUserDto, [3])
       .catch((e: unknown) => e);
 
-    expect(error).toBeInstanceOf(BusinessException);
-    expect((error as BusinessException).errorCode).toBe(
-      ErrorCode.REQUIRED_TERMS_NOT_AGREED,
-    );
-    expect((error as BusinessException).getStatus()).toBe(
-      HttpStatus.BAD_REQUEST,
+    expect(error).toBeInstanceOf(BadRequestException);
+    expect((error as BadRequestException).message).toBe(
+      '필수 약관에 동의해야 합니다',
     );
     expect(userRepository.create.mock.calls).toHaveLength(0);
   });

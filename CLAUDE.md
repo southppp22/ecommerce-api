@@ -2,7 +2,7 @@
 
 ## 프로젝트
 
-이커머스 API 서버 (포트폴리오). NestJS + TypeScript + PostgreSQL + Redis, Docker Compose 기반.
+이커머스 API 서버
 
 ## 작업 규칙
 

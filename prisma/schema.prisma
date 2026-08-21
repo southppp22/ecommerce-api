@@ -7,3 +7,61 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String   @db.VarChar(50)
+  gender       Gender
+  birthDate    DateTime @map("birth_date") @db.Date
+  phone        String   @db.VarChar(20) // 01012345678)
+  zipcode      String   @db.VarChar(10)
+  address1     String
+  address2     String?
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  termsAgreements TermsAgreement[]
+
+  @@map("users")
+}
+
+model Terms {
+  id         Int     @id @default(autoincrement())
+  code       String // SERVICE, PRIVACY
+  version    Int
+  title      String
+  content    String
+  isRequired Boolean @map("is_required")
+  isActive   Boolean @default(true) @map("is_active")
+
+  agreements TermsAgreement[]
+
+  @@unique([code, version])
+  @@map("terms")
+}
+
+model TermsAgreement {
+  id       Int      @id @default(autoincrement())
+  userId   Int      @map("user_id")
+  termsId  Int      @map("terms_id")
+  agreedAt DateTime @default(now()) @map("agreed_at") @db.Timestamptz
+
+  user  User  @relation(fields: [userId], references: [id])
+  terms Terms @relation(fields: [termsId], references: [id])
+
+  @@unique([userId, termsId])
+  @@map("terms_agreements")
+}

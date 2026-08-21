@@ -12,6 +12,7 @@ import { envValidationSchema } from './config/env.validation';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env'],
       load: [appConfig, databaseConfig, redisConfig],
       validationSchema: envValidationSchema,
       validationOptions: { abortEarly: false },

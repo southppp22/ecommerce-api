@@ -3,9 +3,8 @@ import { UsersService } from '../users/users.service';
 import { PasswordHasher } from './hashing/password-hasher';
 import type { AuthSession } from './session/auth-session';
 import type { SignupRequestDto } from './dto/signup-request.dto';
-import { SignupResponseDto } from './dto/signup-response.dto';
 import type { LoginRequestDto } from './dto/login-request.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
+import type { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,10 +13,10 @@ export class AuthService {
     private readonly passwordHasher: PasswordHasher,
   ) {}
 
-  async signup(dto: SignupRequestDto): Promise<SignupResponseDto> {
+  async signup(dto: SignupRequestDto): Promise<User> {
     const passwordHash = await this.passwordHasher.hash(dto.password);
 
-    const user = await this.usersService.create(
+    return this.usersService.create(
       {
         email: dto.email,
         passwordHash,
@@ -31,14 +30,9 @@ export class AuthService {
       },
       dto.agreedTermsIds,
     );
-
-    return SignupResponseDto.from(user);
   }
 
-  async login(
-    dto: LoginRequestDto,
-    session: AuthSession,
-  ): Promise<LoginResponseDto> {
+  async login(dto: LoginRequestDto, session: AuthSession): Promise<User> {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
       throw new UnauthorizedException(
@@ -57,7 +51,7 @@ export class AuthService {
 
     await session.rotate();
     session.saveUser(user);
-    return LoginResponseDto.from(user);
+    return user;
   }
 
   async logout(session: AuthSession): Promise<void> {
